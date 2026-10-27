@@ -1,0 +1,163 @@
+services:
+  # =========================================================================
+  # 1. PostgreSQL - База данных контура
+  # Изолирована: порты наружу НЕ пробрасываются, доступ только внутри backend_net
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-leads_db}
+      POSTGRES_USER: ${POSTGRES_USER:-leads_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_super_secret_db_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # =========================================================================
+  # 2. pgAdmin - Веб-интерфейс для управления PostgreSQL
+  # Подключен к backend_net (для работы с БД) и frontend_net (для Nginx прокси)
+  # =========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_panel
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@autello.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-change_me_admin_pass}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_CONFIG_CHECK_EMAIL_DELIVERABILITY: "False"
+      PGADMIN_LISTEN_PORT: 80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend_net
+      - frontend_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # =========================================================================
+  # 3. Docker Registry - Локальный защищенный реестр образов
+  # Доступен извне по порту 5000 с авторизацией через htpasswd (docker login)
+  # =========================================================================
+  registry:
+    image: registry:2
+    container_name: docker_registry
+    restart: unless-stopped
+    ports:
+      - "${REGISTRY_EXTERNAL_PORT:-5000}:5000"
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "Docker Registry Realm"
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+    volumes:
+      - registry_data:/var/lib/registry
+      - ./registry/auth:/auth:ro
+    networks:
+      - frontend_net
+
+  # =========================================================================
+  # 4. Watchtower - Автоматическое обновление контейнеров
+  # Мониторит Docker Registry и обновляет контейнеры с соответствующим лейблом
+  # =========================================================================
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower_updater
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./registry/auth/config.json:/config.json:ro
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_POLL_INTERVAL: ${WATCHTOWER_INTERVAL:-60}
+      WATCHTOWER_LABEL_ENABLE: "true" # Обновляет только контейнеры с меткой watchtower.enable=true
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+    networks:
+      - frontend_net
+    depends_on:
+      - registry
+
+  # =========================================================================
+  # 5. Nginx - Входной шлюз (Reverse Proxy / API Gateway / Static Frontend)
+  # Единственная точка входа для пользователей снаружи (порты 80, 443)
+  # =========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_gateway
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - frontend_net
+    depends_on:
+      - registry
+      - pgadmin
+
+  # =========================================================================
+  # 6. Backend - Будущий сервис обработки лидов (ПОКА ЗАКОММЕНТИРОВАН ПО ТЗ)
+  # Для включения: раскомментируйте блок ниже, когда образ будет собран и запушен.
+  # =========================================================================
+  # backend:
+  #   image: localhost:5000/autello/backend:latest
+  #   container_name: backend_api
+  #   restart: unless-stopped
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - DB_PORT=5432
+  #     - DB_NAME=${POSTGRES_DB:-leads_db}
+  #     - DB_USER=${POSTGRES_USER:-leads_user}
+  #     - DB_PASSWORD=${POSTGRES_PASSWORD:-change_me_super_secret_db_pass}
+  #     - PORT=8000
+  #     - NODE_ENV=production
+  #   networks:
+  #     - backend_net   # Доступ к PostgreSQL внутри контура
+  #     - frontend_net  # Доступ только для Nginx прокси (наружу порты не публикуются)
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   labels:
+  #     # Метка для Watchtower — при пуше нового тега backend автоматически обновится
+  #     - "com.centurylinklabs.watchtower.enable=true"
+
+# =========================================================================
+# Изолированные сети (Security Contours)
+# =========================================================================
+networks:
+  # Публичный контур веб-шлюза: Nginx, pgAdmin (веб-интерфейс), Registry, Watchtower
+  frontend_net:
+    driver: bridge
+
+  # Строго изолированный внутренний контур: только Backend, Postgres и pgAdmin
+  # internal: true гарантирует, что из этой сети нет прямого доступа в интернет и извне
+  backend_net:
+    driver: bridge
+    internal: true
+
+# =========================================================================
+# Постоянные тома данных (Persistence)
+# =========================================================================
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  registry_data:
+    driver: local

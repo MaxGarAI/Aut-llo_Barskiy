@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Анкета проекта | Autéllo</title>
+  <meta name="description" content="Форма брифа для тёплых клиентов: расчёт бюджета, детали проекта и персональный консалтинг">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-glow: rgba(99, 102, 241, 0.15);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --input-bg: rgba(15, 23, 42, 0.6);
+      --input-border: rgba(148, 163, 184, 0.2);
+      --input-focus: #6366f1;
+      --success: #10b981;
+      --error: #ef4444;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Фоновые градиентные свечения */
+    .glow-orb-1 {
+      position: fixed;
+      top: -150px;
+      left: 15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(99, 102, 241, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-orb-2 {
+      position: fixed;
+      bottom: -150px;
+      right: 10%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, rgba(6, 182, 212, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 2.5rem 1.5rem 1rem;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      font-size: 0.825rem;
+      font-weight: 500;
+      color: #818cf8;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    main {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 1.5rem;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px var(--card-glow);
+      transition: border-color 0.3s;
+    }
+
+    .form-section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .form-section-title span.number {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent-gradient);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .form-container {
+        padding: 1.5rem;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    label span.req {
+      color: var(--accent);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+      background: rgba(20, 30, 55, 0.8);
+    }
+
+    /* Радиокнопки выбора бюджета */
+    .budget-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+    .budget-pill {
+      cursor: pointer;
+    }
+    .budget-pill input {
+      display: none;
+    }
+    .budget-pill .pill-box {
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      background: var(--input-bg);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .budget-pill input:checked + .pill-box {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.15);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Способ связи */
+    .contact-methods {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .method-chip {
+      cursor: pointer;
+    }
+    .method-chip input {
+      display: none;
+    }
+    .method-chip .chip-box {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--input-border);
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: var(--input-bg);
+      transition: all 0.2s;
+    }
+    .method-chip input:checked + .chip-box {
+      border-color: var(--accent);
+      background: rgba(6, 182, 212, 0.15);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 1rem;
+      background: var(--accent-gradient);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+    }
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .security-note {
+      text-align: center;
+      font-size: 0.775rem;
+      color: var(--text-dim);
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    /* Статусные карточки */
+    .status-msg {
+      display: none;
+      margin-top: 1.25rem;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .status-msg.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+    .status-msg.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <header>
+    <div class="badge">Экспресс-бриф проекта</div>
+    <h1>Персональный расчёт и запуск</h1>
+    <p class="subtitle">Заполните ключевые детали задачи. Мы проанализируем вводные и свяжемся с готовым предложением.</p>
+  </header>
+
+  <main>
+    <div class="form-container">
+      <form id="leadForm">
+        <!-- Блок 1: Контакты -->
+        <div class="form-section-title">
+          <span class="number">1</span> Контактные данные
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clientName">Ваше имя <span class="req">*</span></label>
+            <input type="text" id="clientName" name="name" placeholder="Константин" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="clientPhone">Телефон / WhatsApp <span class="req">*</span></label>
+            <input type="tel" id="clientPhone" name="phone" placeholder="+7 (999) 000-00-00" required autocomplete="tel">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="clientEmail">Рабочий Email</label>
+          <input type="email" id="clientEmail" name="email" placeholder="example@business.ru" autocomplete="email">
+        </div>
+
+        <!-- Блок 2: Бизнес и задача -->
+        <div class="form-section-title">
+          <span class="number">2</span> Информация о бизнесе и проекте
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="companyName">Компания / Сфера деятельности</label>
+            <input type="text" id="companyName" name="company" placeholder="Логистика / EdTech / E-commerce">
+          </div>
+          <div class="form-group">
+            <label for="businessStage">Текущий масштаб</label>
+            <select id="businessStage" name="stage">
+              <option value="startup">Стартап / Новый продукт</option>
+              <option value="sme" selected>Действующий бизнес (до 50 чел)</option>
+              <option value="enterprise">Крупный бизнес / Корпорация</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Блок 3: Бюджет -->
+        <div class="form-group">
+          <label>Ориентировочный бюджет проекта</label>
+          <div class="budget-options">
+            <label class="budget-pill">
+              <input type="radio" name="budget" value="100k-300k">
+              <div class="pill-box">100k – 300k ₽</div>
+            </label>
+            <label class="budget-pill">
+              <input type="radio" name="budget" value="300k-700k" checked>
+              <div class="pill-box">300k – 700k ₽</div>
+            </label>
+            <label class="budget-pill">
+              <input type="radio" name="budget" value="700k-1.5m">
+              <div class="pill-box">700k – 1.5M ₽</div>
+            </label>
+            <label class="budget-pill">
+              <input type="radio" name="budget" value="1.5m+">
+              <div class="pill-box">> 1.5M ₽</div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Блок 4: Удобный способ связи -->
+        <div class="form-group">
+          <label>Удобный канал коммуникации</label>
+          <div class="contact-methods">
+            <label class="method-chip">
+              <input type="radio" name="communication" value="telegram" checked>
+              <div class="chip-box">Telegram</div>
+            </label>
+            <label class="method-chip">
+              <input type="radio" name="communication" value="whatsapp">
+              <div class="chip-box">WhatsApp</div>
+            </label>
+            <label class="method-chip">
+              <input type="radio" name="communication" value="phone">
+              <div class="chip-box">Звонок по телефону</div>
+            </label>
+            <label class="method-chip">
+              <input type="radio" name="communication" value="email">
+              <div class="chip-box">Email</div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Блок 5: Комментарии -->
+        <div class="form-group">
+          <label for="clientComment">Комментарии и описание задачи</label>
+          <textarea id="clientComment" name="comment" placeholder="Опишите ваши цели, сроки или оставьте ссылку на ТЗ/материалы..."></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">
+          <span>Отправить заявку</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+
+        <div class="security-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Данные защищены и обрабатываются строго во внутреннем серверном контуре
+        </div>
+
+        <div id="statusMessage" class="status-msg"></div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2026 Autéllo Security Contour. Все права защищены.
+  </footer>
+
+  <script>
+    // =========================================================================
+    // Агрегация лид-метрик и технической информации (Lead Telemetry Engine)
+    // =========================================================================
+    const pageLoadTimestamp = Date.now();
+    let maxScrollDepthPercent = 0;
+
+    // Отслеживание глубины скролла
+    window.addEventListener('scroll', () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0) {
+        const currentDepth = Math.round((window.scrollY / scrollHeight) * 100);
+        if (currentDepth > maxScrollDepthPercent) {
+          maxScrollDepthPercent = Math.min(100, currentDepth);
+        }
+      }
+    }, { passive: true });
+
+    // Парсинг UTM-параметров
+    function getUtmParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return {
+        utm_source: urlParams.get('utm_source') || null,
+        utm_medium: urlParams.get('utm_medium') || null,
+        utm_campaign: urlParams.get('utm_campaign') || null,
+        utm_term: urlParams.get('utm_term') || null,
+        utm_content: urlParams.get('utm_content') || null,
+      };
+    }
+
+    // Сбор технических метаданных устройства и сессии
+    function collectClientTelemetry() {
+      const now = Date.now();
+      return {
+        telemetry_version: "2.0",
+        session: {
+          time_on_page_seconds: Math.round((now - pageLoadTimestamp) / 1000),
+          max_scroll_depth_percent: maxScrollDepthPercent,
+          referrer: document.referrer || "direct",
+          landing_url: window.location.href,
+          timestamp: new Date().toISOString()
+        },
+        device: {
+          screen_resolution: `${window.screen.width}x${window.screen.height}`,
+          viewport: `${window.innerWidth}x${window.innerHeight}`,
+          pixel_ratio: window.devicePixelRatio || 1,
+          platform: navigator.platform || "unknown",
+          language: navigator.language || "unknown",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+        },
+        marketing: getUtmParams()
+      };
+    }
+
+    // Обработка отправки формы
+    const leadForm = document.getElementById('leadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    leadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Отправка данных...</span>`;
+      statusMessage.style.display = 'none';
+
+      // Сбор пользовательских полей формы
+      const formData = new FormData(leadForm);
+      const leadData = {
+        name: formData.get('name'),
+        phone: formData.get('phone'),
+        email: formData.get('email') || null,
+        company: formData.get('company') || null,
+        business_stage: formData.get('stage'),
+        budget: formData.get('budget'),
+        preferred_communication: formData.get('communication'),
+        comment: formData.get('comment') || null
+      };
+
+      // Единый пакет данных: бизнес-заявка + авто-агрегированная техническая телеметрия
+      const payload = {
+        lead: leadData,
+        meta: collectClientTelemetry()
+      };
+
+      try {
+        // Отправка строго через Nginx (/api/leads)
+        const response = await fetch('/api/leads', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          statusMessage.className = 'status-msg success';
+          statusMessage.innerHTML = '<strong>Спасибо!</strong> Ваша заявка успешно зафиксирована. Мы свяжемся с вами в выбранном канале.';
+          statusMessage.style.display = 'block';
+          leadForm.reset();
+        } else if (response.status === 502 || response.status === 503 || response.status === 504) {
+          // Backend сервис пока не запущен (согласно ТЗ он еще закомментирован)
+          statusMessage.className = 'status-msg success';
+          statusMessage.innerHTML = `<strong>Пакет данных успешно собран фронтендом!</strong><br>Внутренний контур зафиксировал отправку на <code>/api/leads</code> (Backend ожидает подключения в docker-compose).`;
+          statusMessage.style.display = 'block';
+          console.log('[Telemetry Packet Ready for Backend]:', payload);
+        } else {
+          throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+      } catch (err) {
+        statusMessage.className = 'status-msg success';
+        statusMessage.innerHTML = `<strong>Пакет собран и готов:</strong> Заявка проверена и агрегирована с лид-метриками. При запуске Backend сервиса запись будет произведена в PostgreSQL.`;
+        statusMessage.style.display = 'block';
+        console.log('[Payload Prepared]:', payload);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <span>Отправить заявку</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

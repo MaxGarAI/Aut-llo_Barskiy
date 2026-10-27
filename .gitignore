@@ -1,0 +1,14 @@
+# Секретные переменные окружения
+.env
+
+# SSL сертификаты и приватные ключи
+nginx/ssl/*.key
+nginx/ssl/*.crt
+
+# Учетные данные локального реестра
+registry/auth/htpasswd
+registry/auth/config.json
+
+# Логи и временные файлы
+*.log
+.DS_Store
